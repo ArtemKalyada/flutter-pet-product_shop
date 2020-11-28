@@ -30,6 +30,11 @@ class CardProvider with ChangeNotifier {
     });
   }
 
+  void clear() {
+    _cardItems = {};
+    notifyListeners();
+  }
+
   void addCardItem(String productId, String title, double price) {
     if (_cardItems.containsKey(productId)) {
       _cardItems.update(
@@ -54,5 +59,26 @@ class CardProvider with ChangeNotifier {
 
   int getItemUniqCount() {
     return cardItems.keys.length;
+  }
+
+  void removeCart(String productId) {
+    cardItems.remove(productId);
+    notifyListeners();
+  }
+
+  void rollbackAdding(String productId) {
+    if (!_cardItems.containsKey(productId)) return;
+    if (_cardItems[productId].quantity > 1) {
+      _cardItems.update(
+          productId,
+          (item) => new CardItem(
+              id: item.id,
+              title: item.title,
+              quantity: item.quantity - 1,
+              price: item.price));
+    } else {
+      _cardItems.remove(productId);
+    }
+    notifyListeners();
   }
 }

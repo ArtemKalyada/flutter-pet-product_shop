@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:product_shop/providers/products/card.dart';
+import 'package:product_shop/providers/products/order.dart';
 import 'package:product_shop/providers/products/products.dart';
 import 'package:product_shop/screens/cart_screen.dart';
+import 'package:product_shop/screens/edit_product_screen.dart';
+import 'package:product_shop/screens/orders_screen.dart';
 import 'package:product_shop/screens/product_detail_screen.dart';
 import 'package:product_shop/screens/product_overview_screen.dart';
 import 'package:provider/provider.dart';
@@ -13,8 +16,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_)=>ProductProvider(),),
-        ChangeNotifierProvider(create: (_)=> CardProvider(),)
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CardProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_)=>OrderList(),
+        )
       ],
       child: MaterialApp(
         title: 'MyShop',
@@ -25,8 +35,9 @@ class MyApp extends StatelessWidget {
         home: ProductOverviewScreen(),
         routes: {
           ProductDetailScreen.routeName: (context) => ProductDetailScreen(),
-          CartScreen.routeName: (context) => CartScreen()
-
+          CartScreen.routeName: (context) => CartScreen(),
+          OrdersScreen.routeName: (context) => OrdersScreen(),
+          EditProductScreen.route:(context)=>EditProductScreen(),
         },
       ),
     );
