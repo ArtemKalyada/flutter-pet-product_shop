@@ -1,80 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:product_shop/providers/products/card.dart';
-import 'package:product_shop/providers/products/order.dart';
-import 'package:product_shop/widgets/cart_item_widget.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/cart.dart' show Cart;
+import '../widgets/cart_item.dart';
+import '../providers/orders.dart';
+
 class CartScreen extends StatelessWidget {
-  static final routeName = '/cart-screen';
+  static const routeName = '/cart';
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<CardProvider>(context);
+    final cart = Provider.of<Cart>(context);
     return Scaffold(
-
       appBar: AppBar(
-        title: Text("Your carts"),
+        title: Text('Your Cart'),
       ),
       body: Column(
-        children: [
+        children: <Widget>[
           Card(
-            margin: EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 20,
-                ),
-                Text(
-                  "Total",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            margin: EdgeInsets.all(15),
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    'Total',
+                    style: TextStyle(fontSize: 20),
                   ),
-                ),
-                Spacer(),
-                Chip(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  label: Text(
-                    "\$${cart.getTotal().toStringAsFixed(2)}",
-                    style: TextStyle(
-                      color: Theme.of(context).primaryTextTheme.title.color,
+                  Spacer(),
+                  Chip(
+                    label: Text(
+                      '\$${cart.totalAmount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryTextTheme.title.color,
+                      ),
                     ),
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
-                ),
-                FlatButton(
-                  child: Text(
-                    "Place order",
-                    style: TextStyle(
-                        fontSize: 20, color: Theme.of(context).primaryColor),
-                  ),
-                  onPressed: () {
-                    placeOrder(context, cart);
-                    cart.clear();
-                  },
-                )
-              ],
+                  OrderButton(cart: cart)
+                ],
+              ),
             ),
           ),
+          SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
-              itemCount: cart.getItemUniqCount(),
-//              separatorBuilder: (BuildContext context, int index) => Divider(),
-              itemBuilder: (ctx, i) => CartItemWidget(
-                  cart.cardItems.values.toList()[i].id,
-                  cart.cardItems.values.toList()[i].title,
-                  cart.cardItems.values.toList()[i].quantity,
-                  cart.cardItems.values.toList()[i].price,
-                  cart.cardItems.keys.toList()[i]),
+              itemCount: cart.items.length,
+              itemBuilder: (ctx, i) => CartItem(
+                    cart.items.values.toList()[i].id,
+                    cart.items.keys.toList()[i],
+                    cart.items.values.toList()[i].price,
+                    cart.items.values.toList()[i].quantity,
+                    cart.items.values.toList()[i].title,
+                  ),
             ),
           )
         ],
       ),
     );
   }
+}
 
-  void placeOrder(BuildContext context, CardProvider cardProvider) {
-    Provider.of<OrderList>(context)
-        .addOrder(cardProvider.cardItems.values.toList(), cardProvider.getTotal());
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key key,
+    @required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  _OrderButtonState createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  var _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      child: _isLoading ? CircularProgressIndicator() : Text('ORDER NOW'),
+      onPressed: (widget.cart.totalAmount <= 0 || _isLoading)
+          ? null
+          : () async {
+              setState(() {
+                _isLoading = true;
+              });
+              await Provider.of<Orders>(context, listen: false).addOrder(
+                widget.cart.items.values.toList(),
+                widget.cart.totalAmount,
+              );
+              setState(() {
+                _isLoading = false;
+              });
+              widget.cart.clear();
+            },
+      textColor: Theme.of(context).primaryColor,
+    );
   }
 }
