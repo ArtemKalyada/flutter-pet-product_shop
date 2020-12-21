@@ -22,7 +22,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: Auth()),
         ChangeNotifierProxyProvider<Auth, Products>(
-          update: (ctx, auth, previousProducts) => Products(auth.token,
+          update: (ctx, auth, previousProducts) => Products(
+              auth.token,
+              auth.userId,
               previousProducts == null ? [] : previousProducts.items),
         ),
         ChangeNotifierProvider.value(
@@ -30,7 +32,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProxyProvider<Auth, Orders>(
           update: (ctx, auth, previousOrder) => Orders(
-              previousOrder == null ? [] : previousOrder.orders, auth.token),
+              previousOrder == null ? [] : previousOrder.orders,
+              auth.userId,
+              auth.token),
         ),
       ],
       child: Consumer<Auth>(builder: (ctx, auth, _) {
@@ -41,7 +45,16 @@ class MyApp extends StatelessWidget {
               accentColor: Colors.deepOrange,
               fontFamily: 'Lato',
             ),
-            home: auth.isAuthorized ? ProductsOverviewScreen() : AuthScreen(),
+            home: auth.isAuthorized
+                ? ProductsOverviewScreen()
+                : FutureBuilder(
+                    future: auth.tryToAutoLogin(),
+                    builder: (ctx, autologinResult) =>
+                        autologinResult.connectionState ==
+                                ConnectionState.waiting
+                            ? SplashScreen()
+                            : AuthScreen(),
+                  ),
             routes: {
               ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
               CartScreen.routeName: (ctx) => CartScreen(),
@@ -51,6 +64,17 @@ class MyApp extends StatelessWidget {
               AuthScreen.routeName: (ctx) => AuthScreen(),
             });
       }),
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('Loading...'),
+      ),
     );
   }
 }

@@ -43,8 +43,9 @@ class Products with ChangeNotifier {
   ];
 
   final String authToken;
+  final String userId;
 
-  Products(this.authToken, this._items);
+  Products(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     // if (_showFavoritesOnly) {
@@ -71,15 +72,22 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> fetchAndSetProducts() async {
-    final url =
-        'https://flutter-shop-app-d36fa-default-rtdb.firebaseio.com/products.json?auth=$authToken';
+  Future<void> fetchAndSetProducts([bool filterByCreator = false]) async {
+    String filterUrl =
+        filterByCreator ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    String url =
+        'https://flutter-shop-app-d36fa-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterUrl';
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) {
         return;
       }
+      url =
+          'https://flutter-shop-app-d36fa-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken';
+      final userFavoritesResponse = await http.get(url);
+      final extractedFavoritesData = json.decode(userFavoritesResponse.body);
+
       final List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
@@ -87,7 +95,10 @@ class Products with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           price: prodData['price'],
-          isFavorite: prodData['isFavorite'],
+//          isFavorite: false,
+          isFavorite: extractedFavoritesData == null
+              ? false
+              : extractedFavoritesData[prodId] ?? false,
           imageUrl: prodData['imageUrl'],
         ));
       });
@@ -110,6 +121,7 @@ class Products with ChangeNotifier {
           'imageUrl': product.imageUrl,
           'price': product.price,
           'isFavorite': product.isFavorite,
+          'creatorId': userId
         }),
       );
       final newProduct = Product(
