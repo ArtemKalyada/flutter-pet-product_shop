@@ -51,6 +51,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.deepOrange,
       appBar: AppBar(
         title: Text('MyShop'),
         actions: <Widget>[
@@ -68,21 +69,21 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
               Icons.more_vert,
             ),
             itemBuilder: (_) => [
-                  PopupMenuItem(
-                    child: Text('Only Favorites'),
-                    value: FilterOptions.Favorites,
-                  ),
-                  PopupMenuItem(
-                    child: Text('Show All'),
-                    value: FilterOptions.All,
-                  ),
-                ],
+              PopupMenuItem(
+                child: Text('Only Favorites'),
+                value: FilterOptions.Favorites,
+              ),
+              PopupMenuItem(
+                child: Text('Show All'),
+                value: FilterOptions.All,
+              ),
+            ],
           ),
           Consumer<Cart>(
             builder: (_, cart, ch) => Badge(
-                  child: ch,
-                  value: cart.itemCount.toString(),
-                ),
+              child: ch,
+              value: cart.itemCount.toString(),
+            ),
             child: IconButton(
               icon: Icon(
                 Icons.shopping_cart,
@@ -93,6 +94,19 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
             ),
           ),
         ],
+        flexibleSpace: Container(
+          decoration: new BoxDecoration(
+            gradient: new LinearGradient(
+                colors: [
+                  Colors.deepOrange,
+                  Colors.black,
+                ],
+                begin: const FractionalOffset(0.0, 0.0),
+                end: const FractionalOffset(1.0, 0.0),
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp),
+          ),
+        ),
       ),
       drawer: AppDrawer(),
       body: _isLoading
